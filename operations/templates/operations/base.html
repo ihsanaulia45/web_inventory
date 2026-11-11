@@ -1,0 +1,49 @@
+{% load static %}
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Product Operations{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'operations/app.css' %}">
+  <link rel="stylesheet" href="{% static 'operations/auth.css' %}">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <a class="brand" href="{% url 'dashboard' %}">
+        <span class="brand-mark">PO</span><span>Product<br>Operations</span>
+      </a>
+      <div class="nav-caption">WORKSPACE</div>
+      <nav class="nav-list" aria-label="Navigasi utama">
+        <a class="nav-link {% if active_nav == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}"><span class="nav-icon">▦</span>Dashboard</a>
+        <a class="nav-link {% if active_nav == 'sales_orders' %}active{% endif %}" href="{% url 'sales_orders' %}"><span class="nav-icon">▤</span>Sales Orders</a>
+        <div class="nav-caption nav-caption-spaced">INVENTORY TRACKER</div>
+        <a class="nav-link {% if active_nav == 'trackers' and tracker_key == 'A' %}active{% endif %}" href="{% url 'tracker_list' 'A' %}"><span class="tracker-dot a">A</span>Finish Good</a>
+        <a class="nav-link {% if active_nav == 'trackers' and tracker_key == 'B' %}active{% endif %}" href="{% url 'tracker_list' 'B' %}"><span class="tracker-dot b">B</span>Not Finish</a>
+        <a class="nav-link {% if active_nav == 'trackers' and tracker_key == 'C' %}active{% endif %}" href="{% url 'tracker_list' 'C' %}"><span class="tracker-dot c">C</span>In Process</a>
+        <a class="nav-link {% if active_nav == 'trackers' and tracker_key == 'D' %}active{% endif %}" href="{% url 'tracker_list' 'D' %}"><span class="tracker-dot d">D</span>Raw Material</a>
+        <div class="nav-caption nav-caption-spaced">OPERATIONS</div>
+        <a class="nav-link {% if active_nav == 'shortage' %}active{% endif %}" href="{% url 'shortage_monitor' %}"><span class="nav-icon">◷</span>Shortage Monitor</a>
+        <a class="nav-link" href="{% url 'admin:index' %}"><span class="nav-icon">⚙</span>Administration</a>
+      </nav>
+      <div class="sidebar-bottom"><span class="pulse"></span>Data updated <b>Today</b><small>Training dataset · Nov 2026</small></div>
+    </aside>
+
+    <main class="main-area">
+      <header class="topbar">
+        <button class="menu-toggle" aria-label="Buka navigasi" data-menu-toggle>☰</button>
+        <div class="topbar-title">{% block top_title %}Operations Overview{% endblock %}</div>
+        <form class="global-search" action="{% url 'sales_orders' %}" method="get">
+          <span aria-hidden="true">⌕</span><input name="q" placeholder="Cari order, customer, coil..." value="{{ request.GET.q }}" aria-label="Pencarian global"><kbd>⌘ K</kbd>
+        </form>
+        <button class="icon-button" aria-label="Notifikasi">♧<i class="notification-dot"></i></button>
+        <div class="user-menu"><button class="user-chip" type="button"><span class="avatar">{{ request.user.username|default:'OP'|slice:':2'|upper }}</span><span class="user-info"><b>{{ request.user.username|default:'Operations User' }}</b><small>Operations team</small></span><span class="chevron">⌄</span></button><form method="post" action="{% url 'logout' %}" class="logout-form">{% csrf_token %}<button type="submit">Keluar</button></form></div>
+      </header>
+      <section class="page-content">{% block content %}{% endblock %}</section>
+    </main>
+  </div>
+  <div class="mobile-backdrop" data-menu-close></div>
+  <script src="{% static 'operations/app.js' %}" defer></script>
+</body>
+</html>

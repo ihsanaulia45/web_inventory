@@ -1,0 +1,30 @@
+{% load static %}
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Masuk · Product Operations</title>
+  <link rel="stylesheet" href="{% static 'operations/app.css' %}">
+  <link rel="stylesheet" href="{% static 'operations/auth.css' %}">
+</head>
+<body class="login-page">
+  <main class="login-card">
+    <a class="brand login-brand" href="#"><span class="brand-mark">PO</span><span>Product<br>Operations</span></a>
+    <p class="eyebrow">ERP PRODUCT OPERATION</p>
+    <h1>Masuk ke workspace</h1>
+    <p class="subheading">Gunakan akun operasi untuk melihat Sales Order dan inventory.</p>
+    {% if form.errors %}<div class="login-error" role="alert">Username atau password tidak sesuai.</div>{% endif %}
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ next }}">
+      <label for="id_username">Username</label>
+      <input id="id_username" name="username" type="text" autocomplete="username" required autofocus>
+      <label for="id_password">Password</label>
+      <input id="id_password" name="password" type="password" autocomplete="current-password" required>
+      <button class="button button-primary" type="submit">Masuk</button>
+    </form>
+    <small>Akun dibuat oleh administrator Django.</small>
+  </main>
+</body>
+</html>

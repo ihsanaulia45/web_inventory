@@ -1,0 +1,20 @@
+{% extends 'operations/base.html' %}
+{% block title %}Sales Orders · Product Operations{% endblock %}
+{% block top_title %}Sales Orders{% endblock %}
+{% block content %}
+<div class="page-heading"><div><div class="eyebrow">ORDER MANAGEMENT</div><h1>Sales Orders</h1><p class="subheading">Lihat alokasi inventory dan risiko pemenuhan per repeat order.</p></div><div class="heading-actions"><a class="button button-quiet" href="{% url 'export_orders' %}?{{ request.GET.urlencode }}">⇩ <span>Export</span></a></div></div>
+<div class="list-summary"><span><b>{{ orders.paginator.count }}</b> order ditemukan</span><span class="summary-separator"></span><span>Alokasi dalam ton <i class="info-mark">i</i></span></div>
+<section class="card table-card full-list-card">
+  <form class="list-toolbar" method="get">
+    <label class="table-search"><span>⌕</span><input name="q" value="{{ request.GET.q }}" placeholder="Cari repeat no, nomor SO, customer..." aria-label="Cari Sales Order"></label>
+    <select name="status" class="compact-select"><option value="">Semua status</option><option value="SHORTAGE" {% if filters.status == 'SHORTAGE' %}selected{% endif %}>Shortage</option><option value="WARNING" {% if filters.status == 'WARNING' %}selected{% endif %}>Warning</option><option value="SAFE" {% if filters.status == 'SAFE' %}selected{% endif %}>Safe</option></select>
+    <input name="customer" class="compact-select" value="{{ filters.customer }}" placeholder="Customer">
+    <button class="button button-outline" type="submit">Filter</button>
+  </form>
+  <div class="table-scroll"><table class="orders-table"><thead><tr><th>REPEAT NO</th><th>SALES ORDER</th><th>CUSTOMER / PURCHASER</th><th>DESIGNATION</th><th>DUE DATE</th><th>QTY</th><th>SHIPPED</th><th>OPEN</th><th>A · FG</th><th>B · NF</th><th>C · IP</th><th>D · RM</th><th>UNALLOCATED</th><th>STATUS</th></tr></thead><tbody>
+  {% for order in orders %}<tr><td><a class="table-id" href="{% url 'order_detail' order.repeat_no %}">{{ order.repeat_no }}</a></td><td class="strong-cell">{{ order.order_no }}</td><td><span class="customer-avatar">{{ order.customer|slice:':1' }}</span><span class="customer-stack"><b>{{ order.customer }}</b><small>{{ order.purchaser }}</small></span></td><td>{{ order.designation }}</td><td>{{ order.due_date|date:'d M Y' }}</td><td class="number-cell">{{ order.quantity|floatformat:3 }}</td><td class="number-cell">{{ order.shipped|floatformat:3 }}</td><td class="number-cell emphasized">{{ order.open_order|floatformat:3 }}</td><td class="number-cell">{{ order.finishing_products|floatformat:3 }}</td><td class="number-cell">{{ order.waiting_finish|floatformat:3 }}</td><td class="number-cell">{{ order.in_process|floatformat:3 }}</td><td class="number-cell">{{ order.raw_material_jsg|floatformat:3 }}</td><td class="number-cell">{{ order.not_allotment|floatformat:3 }}</td><td><span class="status-pill {{ order.shortage_status|lower }}">{{ order.shortage_status }}</span></td></tr>
+  {% empty %}<tr><td colspan="14" class="empty-cell"><span class="empty-icon">⌕</span><b>Tidak ada Sales Order yang sesuai filter</b><small>Ubah kata pencarian atau reset filter untuk melihat order.</small><a href="{% url 'sales_orders' %}">Reset filter</a></td></tr>{% endfor %}
+  </tbody></table></div>
+  <div class="table-footer"><span>Menampilkan <b>{{ orders|length }}</b> dari <b>{{ orders.paginator.count }}</b> order</span><div class="pagination">{% if orders.has_previous %}<a href="?page={{ orders.previous_page_number }}">‹</a>{% endif %}<span class="current-page">{{ orders.number }}</span>{% if orders.has_next %}<a href="?page={{ orders.next_page_number }}">›</a>{% endif %}<small>Rows per page</small><select aria-label="Rows per page"><option>20</option><option>25</option><option>50</option></select></div></div>
+</section>
+{% endblock %}

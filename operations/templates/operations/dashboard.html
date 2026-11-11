@@ -1,0 +1,78 @@
+{% extends 'operations/base.html' %}
+{% block title %}Dashboard · Product Operations{% endblock %}
+{% block top_title %}Dashboard{% endblock %}
+{% block content %}
+<div class="page-heading">
+  <div><div class="eyebrow">{{ as_of_date|date:'l, d F Y'|upper }}</div><h1>Product Operations</h1><p class="subheading">Pantau pemenuhan order dan posisi inventory dalam satu tampilan.</p></div>
+  <div class="heading-actions"><button class="button button-quiet">↻ <span>Refresh</span></button><a class="button button-primary" href="{% url 'sales_orders' %}">＋ <span>Sales Order</span></a></div>
+</div>
+<form class="filter-bar card" method="get">
+  <label class="filter-field"><span>DUE DATE DARI</span><input type="date" name="due_from" value="{{ filters.due_from }}"></label>
+  <label class="filter-field"><span>SAMPAI</span><input type="date" name="due_to" value="{{ filters.due_to }}"></label>
+  <label class="filter-field"><span>CUSTOMER</span><select name="customer"><option value="">Semua customer</option>{% for value in customers %}<option value="{{ value }}" {% if request.GET.customer == value %}selected{% endif %}>{{ value }}</option>{% endfor %}</select></label>
+  <label class="filter-field"><span>PURCHASER</span><select name="purchaser"><option value="">Semua purchaser</option>{% for value in purchasers %}<option value="{{ value }}">{{ value }}</option>{% endfor %}</select></label>
+  <label class="filter-field"><span>SHORTAGE STATUS</span><select name="status"><option value="">Semua status</option><option>SHORTAGE</option><option>WARNING</option><option>SAFE</option></select></label>
+  <div class="filter-actions"><a class="button button-quiet" href="{% url 'dashboard' %}">Reset</a><button class="button button-outline" type="submit">Apply filter</button></div>
+</form>
+
+<div class="section-label-row"><h2>Ringkasan inventory</h2><span class="period-label">Per {{ as_of_date|date:'M Y' }} <span class="live-dot"></span></span></div>
+<div class="metric-grid">
+  <a class="metric-card" href="{% url 'sales_orders' %}"><div class="metric-top"><span>Open Order</span><span class="metric-symbol navy-symbol">↗</span></div><div class="metric-value">{{ kpis.open_order|floatformat:3 }} <small>t</small></div><div class="metric-foot"><span class="metric-note">dari {{ kpis.order_count }} sales order</span><span class="metric-trend">● Aktif</span></div></a>
+  <a class="metric-card" href="{% url 'sales_orders' %}"><div class="metric-top"><span>Shipped</span><span class="metric-symbol teal-symbol">↗</span></div><div class="metric-value">{{ kpis.shipped|floatformat:3 }} <small>t</small></div><div class="metric-foot"><span class="metric-note">{{ kpis.shipped_percent|floatformat:1 }}% dari total order</span><span class="mini-bar"><i style="width:{{ kpis.shipped_percent }}%"></i></span></div></a>
+  <a class="metric-card tracker-metric" href="{% url 'tracker_list' 'A' %}"><div class="metric-top"><span><i class="tracker-dot a">A</i> Finish Good</span><span class="metric-symbol">↗</span></div><div class="metric-value">{{ tracker_totals.A|floatformat:3 }} <small>t</small></div><div class="metric-foot"><span class="metric-note">{{ tracker_counts.A_count }} SO terisi</span><span class="metric-tag tag-a">Siap tinjau</span></div></a>
+  <a class="metric-card tracker-metric" href="{% url 'tracker_list' 'B' %}"><div class="metric-top"><span><i class="tracker-dot b">B</i> Not Finish</span><span class="metric-symbol">↗</span></div><div class="metric-value">{{ tracker_totals.B|floatformat:3 }} <small>t</small></div><div class="metric-foot"><span class="metric-note">{{ tracker_counts.B_count }} SO terisi</span><span class="metric-tag tag-b">Dalam antrean</span></div></a>
+  <a class="metric-card tracker-metric" href="{% url 'tracker_list' 'C' %}"><div class="metric-top"><span><i class="tracker-dot c">C</i> In Process</span><span class="metric-symbol">↗</span></div><div class="metric-value">{{ tracker_totals.C|floatformat:3 }} <small>t</small></div><div class="metric-foot"><span class="metric-note">{{ tracker_counts.C_count }} SO terisi</span><span class="metric-tag tag-c">Sedang diproses</span></div></a>
+  <a class="metric-card tracker-metric" href="{% url 'tracker_list' 'D' %}"><div class="metric-top"><span><i class="tracker-dot d">D</i> Raw Material</span><span class="metric-symbol">↗</span></div><div class="metric-value">{{ tracker_totals.D|floatformat:3 }} <small>t</small></div><div class="metric-foot"><span class="metric-note">{{ tracker_counts.D_count }} SO terisi</span><span class="metric-tag tag-d">Material</span></div></a>
+  <a class="metric-card" href="{% url 'sales_orders' %}?tracker=UNALLOCATED"><div class="metric-top"><span>Belum Dialokasikan</span><span class="metric-symbol">↗</span></div><div class="metric-value">{{ kpis.unallocated|floatformat:3 }} <small>t</small></div><div class="metric-foot"><span class="metric-note">perlu tindak lanjut planner</span><span class="metric-tag tag-b">Gap supply</span></div></a>
+</div>
+
+<div class="dashboard-grid">
+  <section class="card chart-card">
+    <div class="card-heading"><div><h2>Komposisi tracker</h2><p>Posisi tonase untuk seluruh Sales Order</p></div><a class="text-link" href="{% url 'sales_orders' %}">Lihat detail <span>→</span></a></div>
+    <div class="composition-layout">
+      <div class="donut-wrap"><div class="donut-chart" style="--a:{{ tracker_chart.a|default:'0' }}%;--b:{{ tracker_chart.b|default:'0' }}%;--c:{{ tracker_chart.c|default:'0' }}%;--d:{{ tracker_chart.d|default:'0' }}%"><div><span>Total tracker</span><b>{{ tracker_chart.total|floatformat:3 }}</b><small>ton</small></div></div></div>
+      <div class="legend-list">
+        <a class="legend-item" href="{% url 'tracker_list' 'A' %}"><i class="legend-color color-a"></i><span>Finish Good<small>Tracker A</small></span><b>{{ tracker_totals.A|floatformat:3 }} t</b></a>
+        <a class="legend-item" href="{% url 'tracker_list' 'B' %}"><i class="legend-color color-b"></i><span>Not Finish<small>Tracker B</small></span><b>{{ tracker_totals.B|floatformat:3 }} t</b></a>
+        <a class="legend-item" href="{% url 'tracker_list' 'C' %}"><i class="legend-color color-c"></i><span>In Process<small>Tracker C</small></span><b>{{ tracker_totals.C|floatformat:3 }} t</b></a>
+        <a class="legend-item" href="{% url 'tracker_list' 'D' %}"><i class="legend-color color-d"></i><span>Raw Material<small>Tracker D</small></span><b>{{ tracker_totals.D|floatformat:3 }} t</b></a>
+      </div>
+    </div>
+    <div class="chart-footnote"><span class="info-mark">i</span> Nilai di atas berasal dari alokasi pada Sales Order. Hold dan NG ditinjau pada detail tracker.</div>
+  </section>
+  <section class="card risk-card">
+    <div class="card-heading"><div><h2>Status pemenuhan</h2><p>Risiko supply pada order aktif</p></div><a class="more-button" href="{% url 'shortage_monitor' %}" aria-label="Buka shortage monitor">•••</a></div>
+    <div class="risk-total"><b>{{ shortage_counts.total }}</b><span>Sales Order dipantau</span></div>
+    <div class="status-bars">
+      <a class="status-row" href="{% url 'sales_orders' %}?status=SHORTAGE"><span><i class="status-dot critical"></i>Shortage</span><b>{{ shortage_counts.shortage }}</b><div class="bar-track"><i class="bar-critical" style="width:{{ shortage_bars.shortage }}%"></i></div></a>
+      <a class="status-row" href="{% url 'sales_orders' %}?status=WARNING"><span><i class="status-dot warning"></i>Warning</span><b>{{ shortage_counts.warning }}</b><div class="bar-track"><i class="bar-warning" style="width:{{ shortage_bars.warning }}%"></i></div></a>
+      <a class="status-row" href="{% url 'sales_orders' %}?status=SAFE"><span><i class="status-dot safe"></i>Safe</span><b>{{ shortage_counts.safe }}</b><div class="bar-track"><i class="bar-safe" style="width:{{ shortage_bars.safe }}%"></i></div></a>
+    </div>
+    <div class="due-callout"><span class="calendar-icon">▣</span><span><b>{{ shortage_counts.due_soon }} order</b><small>jatuh tempo dalam 7 hari</small></span><a href="{% url 'sales_orders' %}?due_soon=1">→</a></div>
+  </section>
+</div>
+
+<div class="dashboard-grid secondary-dashboard-grid">
+  <section class="card chart-card">
+    <div class="card-heading"><div><h2>Open order per bulan due</h2><p>Jumlah Sales Order dan tonase yang belum terkirim</p></div></div>
+    <div class="monthly-list">
+      {% for month in monthly_summary %}<div class="monthly-row"><span>{{ month.month_due_date }}</span><div class="monthly-track"><i style="width:{% if monthly_max_open %}{% widthratio month.open_tons monthly_max_open 100 %}{% else %}0{% endif %}%"></i></div><b>{{ month.open_tons|floatformat:3 }} t</b><small>{{ month.order_count }} SO</small></div>
+      {% empty %}<p class="empty-inline">Belum ada data bulan due.</p>{% endfor %}
+    </div>
+  </section>
+  <section class="card chart-card">
+    <div class="card-heading"><div><h2>Inventory per yard</h2><p>Rincian tonase berdasarkan tracker</p></div></div>
+    <div class="yard-list">{% for item in yard_summary %}<div class="yard-row"><span class="yard-name">{{ item.yard }}</span><span class="tracker-mini {{ item.tracker|lower }}">{{ item.tracker }}</span><b>{{ item.total|floatformat:3 }} t</b></div>{% empty %}<p class="empty-inline">Belum ada detail lokasi yard.</p>{% endfor %}</div>
+  </section>
+</div>
+
+<div class="section-label-row table-section-title"><div><h2>Sales Order prioritas</h2><p>Urutan berdasarkan status shortage dan due date</p></div><a class="button button-quiet" href="{% url 'sales_orders' %}">Lihat semua <span>→</span></a></div>
+<section class="card table-card">
+  <div class="table-toolbar"><form class="table-search" method="get" action="{% url 'sales_orders' %}"><span>⌕</span><input name="q" placeholder="Cari repeat no, SO, customer..." aria-label="Cari sales order"></form><a class="button button-quiet" href="{% url 'sales_orders' %}?sort=due_date">↕ <span>Sort</span></a><a class="button button-quiet" href="{% url 'sales_orders' %}?filters=1">▽ <span>Filter</span></a></div>
+  <div class="table-scroll"><table><thead><tr><th>REPEAT NO</th><th>SALES ORDER</th><th>CUSTOMER</th><th>DUE DATE</th><th>OPEN ORDER</th><th>A · FG</th><th>B · NF</th><th>C · IP</th><th>D · RM</th><th>STATUS</th><th></th></tr></thead>
+    <tbody>{% for order in priority_orders %}<tr><td><a class="table-id" href="{% url 'order_detail' order.repeat_no %}">{{ order.repeat_no }}</a></td><td>{{ order.order_no }}</td><td><span class="customer-avatar">{{ order.customer|slice:':1' }}</span>{{ order.customer }}</td><td>{{ order.due_date|date:'d M Y' }}</td><td class="number-cell">{{ order.open_order|floatformat:3 }} <small>t</small></td><td class="number-cell">{{ order.finishing_products|floatformat:3 }}</td><td class="number-cell">{{ order.waiting_finish|floatformat:3 }}</td><td class="number-cell">{{ order.in_process|floatformat:3 }}</td><td class="number-cell">{{ order.raw_material_jsg|floatformat:3 }}</td><td><span class="status-pill {{ order.shortage_status|lower }}">{{ order.shortage_status }}</span></td><td><a class="row-open" href="{% url 'order_detail' order.repeat_no %}" aria-label="Buka order">↗</a></td></tr>
+    {% empty %}<tr><td colspan="11" class="empty-cell"><span class="empty-icon">▤</span><b>Belum ada data prioritas</b><small>Sales Order akan muncul setelah data tersedia.</small></td></tr>{% endfor %}</tbody>
+  </table></div>
+  <div class="table-footer"><span>Menampilkan <b>{{ priority_orders|length }}</b> Sales Order prioritas</span><a href="{% url 'sales_orders' %}">Buka daftar lengkap →</a></div>
+</section>
+{% endblock %}
