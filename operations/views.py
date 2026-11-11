@@ -135,6 +135,25 @@ def _hydrate_record(record):
     for key, value in payload.items():
         if not hasattr(record, key):
             setattr(record, key, value)
+    # The shared tracker table uses fallback expressions across four concrete models.
+    # Give absent, tracker-specific attributes an empty value so Django's template
+    # resolver can safely evaluate those fallbacks.
+    for field_name in (
+        "product_no",
+        "grade",
+        "result_code",
+        "material_class",
+        "final_line",
+        "coil_status",
+        "finish_hold_reason",
+        "ship_hold_reason",
+        "leading_process",
+        "finishing_date",
+        "accepted_date",
+        "final_line_date",
+    ):
+        if not hasattr(record, field_name):
+            setattr(record, field_name, "")
     return record
 
 
